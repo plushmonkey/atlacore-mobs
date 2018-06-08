@@ -1,0 +1,57 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+
+version = '0.2'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+	maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+	maven { url "http://repo.dmulloy2.net/nexus/repository/public/" }
+	maven { url "http://repo.md-5.net/content/groups/public/" }
+	flatDir {
+		dirs 'libs'
+		dirs 'atlacore/atlacore-bukkit/bin/libs'
+		dirs 'atlacore/atlacore-bukkit/libs'
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java']
+		}
+		resources {
+			srcDirs = ['src/main/resources']
+		}
+	}
+}
+
+processResources {
+	filter {
+		line ->
+		line
+		.replace('${name}', project.name)
+		.replace('${version}', project.version)
+	}
+}
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': project.name,
+		           'Implementation-Version': project.version
+	}
+}
+
+dependencies {
+	compile name: 'atlacore-bukkit-0.1'
+	compile name: 'MobArena'
+	compile name: 'Towny-0.90'
+	compile 'LibsDisguises:LibsDisguises:9.+'
+	compile 'com.comphenix.protocol:ProtocolLib-API:4.+'
+	compile 'com.projectkorra:projectkorra:1.8.+'
+	compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+}
+
+buildDir = 'bin'

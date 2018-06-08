@@ -1,0 +1,9 @@
+name: ${name}
+author: plushmonkey
+version: ${version}
+main: com.plushnode.atlacoremobs.AtlaCoreMobsPlugin
+depend: [AtlaCore]
+softdepend: [ProjectKorra, MobArena, Towny]
+commands:
+  acmobs:
+    usage: /<command>

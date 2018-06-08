@@ -1,0 +1,3 @@
+[submodule "atlacore"]
+	path = atlacore
+	url = git://github.com/plushmonkey/atlacore.git
