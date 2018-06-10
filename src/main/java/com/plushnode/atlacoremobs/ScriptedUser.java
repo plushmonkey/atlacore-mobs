@@ -5,13 +5,10 @@ import com.plushnode.atlacore.game.ability.AbilityDescription;
 import com.plushnode.atlacore.game.ability.air.AirScooter;
 import com.plushnode.atlacore.internal.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import com.plushnode.atlacore.platform.*;
-import com.plushnode.atlacore.platform.Player;
 import com.plushnode.atlacore.util.VectorUtil;
 import com.plushnode.atlacoremobs.decision.*;
 import com.plushnode.atlacoremobs.util.PathfinderUtil;
 import com.plushnode.atlacoremobs.util.VectorSmoother;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.*;
 import org.bukkit.entity.LivingEntity;
 
@@ -22,6 +19,7 @@ public class ScriptedUser extends BukkitBendingUser {
     private static final List<String> SMOOTHED_ABILITIES = Arrays.asList("FireJet", "JetBlast", "JetBlaze");
 
     private User target;
+    private TargetSelector targetSelector;
     private DecisionTreeNode decisionTree;
     private DecisionAction currentAction;
     private boolean sneaking = false;
@@ -33,18 +31,18 @@ public class ScriptedUser extends BukkitBendingUser {
         super(entity);
 
         decisionTree = new RandomAbilityDecision(this, 1500);
+        targetSelector = new NearestPlayerTargetSelector(this);
 
         PathfinderUtil.disableAI(entity);
         PathfinderUtil.setDefaultAI(entity);
-
-        /*if (entity instanceof Zombie) {
-            entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)
-                    .addModifier(new AttributeModifier("generic.movementSpeed", 0.5, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
-        }*/
     }
 
     public void setDecisionTree(DecisionTreeNode tree) {
         this.decisionTree = tree;
+    }
+
+    public void setTargetSelector(TargetSelector targetSelector) {
+        this.targetSelector = targetSelector;
     }
 
     public void setSelectedIndex(int index) {
@@ -81,8 +79,12 @@ public class ScriptedUser extends BukkitBendingUser {
         return direction;
     }
 
-    public void setTarget(User target) {
-        this.target = target;
+    public void setTarget(User newTarget) {
+        if (this.target == newTarget) {
+            return;
+        }
+
+        target = newTarget;
 
         if (target != null) {
             if (entity instanceof Creature) {
@@ -91,6 +93,12 @@ public class ScriptedUser extends BukkitBendingUser {
                     ((Creature) entity).setTarget((LivingEntity) targetEntity);
                 }
             }
+        } else {
+            if (entity instanceof Creature) {
+                ((Creature)entity).setTarget(null);
+            }
+
+            setSneaking(false);
         }
     }
 
@@ -108,17 +116,10 @@ public class ScriptedUser extends BukkitBendingUser {
     }
 
     public void tick() {
-        Player nearest = getNearestPlayer();
+        User newTarget = targetSelector.getTarget();
 
-        if (nearest != null && nearest != target) {
-            setTarget(nearest);
-        }
+        setTarget(newTarget);
 
-        if (target != null && !target.getWorld().equals(getWorld())) {
-            setTarget(null);
-            return;
-        }
-        
         boolean nearby = (target == null) || (target.getLocation().distanceSquared(getLocation()) < 64 * 64);
 
         if (target == null || !nearby) {
@@ -150,9 +151,13 @@ public class ScriptedUser extends BukkitBendingUser {
 
         if (currentAction == null || currentAction.isDone()) {
             currentAction = decisionTree.decide();
+            if (currentAction != null) {
+                //System.out.println("New action: " + currentAction.getName());
+            }
         }
 
         if (currentAction != null) {
+            //System.out.println("Action: " + currentAction.getName());
             currentAction.act();
         }
     }
@@ -161,23 +166,5 @@ public class ScriptedUser extends BukkitBendingUser {
         return SMOOTHED_ABILITIES.stream().anyMatch((name) -> {
             return Game.getAbilityInstanceManager().hasAbility(this, Game.getAbilityRegistry().getAbilityByName(name));
         });
-    }
-
-    private Player getNearestPlayer() {
-        double closestDistSq = Double.MAX_VALUE;
-        Player closest = null;
-
-        for (Player player : Game.getPlayerService().getOnlinePlayers()) {
-            if (!player.getWorld().equals(getLocation().getWorld())) continue;
-            if (player.getGameMode() != GameMode.SURVIVAL) continue;
-
-            double distSq = player.getLocation().distanceSquared(getLocation());
-            if (distSq < closestDistSq) {
-                closest = player;
-                closestDistSq = distSq;
-            }
-        }
-
-        return closest;
     }
 }

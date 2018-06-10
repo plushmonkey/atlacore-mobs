@@ -67,6 +67,11 @@ public class TornadoAction extends DecisionAction {
             }
         }
 
+        if (this.activated && !Game.getAbilityInstanceManager().hasAbility(user, desc)) {
+            user.setSneaking(false);
+            this.done = true;
+        }
+
         if (System.currentTimeMillis() >= this.startTime + this.duration) {
             user.setSneaking(false);
             this.done = true;

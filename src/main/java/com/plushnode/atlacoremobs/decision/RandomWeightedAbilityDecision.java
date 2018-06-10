@@ -92,7 +92,7 @@ public class RandomWeightedAbilityDecision implements DecisionTreeNode {
             }
         }
 
-        return abilities.get(rand.nextInt(abilities.size()));
+        return null;
     }
 
     private List<AbilityDescription> getAbilities() {
