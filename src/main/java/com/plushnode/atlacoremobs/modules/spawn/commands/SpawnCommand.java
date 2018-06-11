@@ -5,6 +5,7 @@ import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacoremobs.AtlaCoreMobsPlugin;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.commands.MultiplexableCommand;
+import com.plushnode.atlacoremobs.compatibility.DisguiseUtil;
 import com.plushnode.atlacoremobs.generator.ScriptedAirbenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
@@ -31,7 +32,7 @@ public class SpawnCommand implements MultiplexableCommand {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.GREEN + "/acmobs spawn [[element:]type] <amount>");
+            sender.sendMessage(ChatColor.GREEN + "/acmobs spawn [[element:]type] <amount> <name>");
             return true;
         }
 
@@ -72,7 +73,7 @@ public class SpawnCommand implements MultiplexableCommand {
             return true;
         }
 
-        if (!type.isSpawnable() || !type.isAlive()) {
+        if ((!type.isSpawnable() || !type.isAlive()) && type != EntityType.PLAYER) {
             sender.sendMessage(ChatColor.RED + "Failed to spawn mob. Type must be a LivingEntity.");
             return true;
         }
@@ -86,12 +87,32 @@ public class SpawnCommand implements MultiplexableCommand {
             }
         }
 
+        String name = "";
+        if (args.length > 3) {
+            name = args[3];
+        }
+
         int numSpawned = 0;
 
         for (int i = 0; i < amount; ++i) {
-            ScriptedUser user = spawnManager.spawn(player, type, userGenerator);
+            EntityType spawnType = type;
+
+            if (spawnType == EntityType.PLAYER) {
+                spawnType = EntityType.VILLAGER;
+            }
+
+            ScriptedUser user = spawnManager.spawn(player, spawnType, userGenerator);
             if (user != null) {
                 ++numSpawned;
+
+                if (!name.isEmpty()) {
+                    user.getBukkitEntity().setCustomName(name);
+                    user.getBukkitEntity().setCustomNameVisible(true);
+
+                    if (type == EntityType.PLAYER) {
+                        DisguiseUtil.disguise(user.getBukkitEntity(), name, name);
+                    }
+                }
             }
         }
 

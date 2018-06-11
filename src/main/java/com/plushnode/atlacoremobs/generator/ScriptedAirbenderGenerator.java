@@ -11,6 +11,7 @@ import com.plushnode.atlacore.platform.block.Material;
 import com.plushnode.atlacore.util.VectorUtil;
 import com.plushnode.atlacore.util.WorldUtil;
 import com.plushnode.atlacoremobs.ScriptedUser;
+import com.plushnode.atlacoremobs.actions.NullAction;
 import com.plushnode.atlacoremobs.actions.air.AirBlastAction;
 import com.plushnode.atlacoremobs.actions.air.AirScooterAction;
 import com.plushnode.atlacoremobs.actions.air.AirSweepAction;
@@ -18,6 +19,7 @@ import com.plushnode.atlacoremobs.actions.air.TornadoAction;
 import com.plushnode.atlacoremobs.decision.BooleanDecision;
 import com.plushnode.atlacoremobs.decision.DecisionTreeNode;
 import com.plushnode.atlacoremobs.decision.RandomWeightedAbilityDecision;
+import com.plushnode.atlacoremobs.decision.RangeDecision;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.*;
@@ -55,13 +57,18 @@ public class ScriptedAirbenderGenerator implements ScriptedUserGenerator {
 
         Random rand = new Random();
 
+        // Fall back to a random ability if near the target, otherwise do nothing.
+        DecisionTreeNode closeRangeDecision = new BooleanDecision(() -> fallbackNode, () -> NullAction::new, () -> {
+            return user.getLocation().distanceSquared(user.getTarget().getLocation()) < 15 * 15;
+        });
+
         DecisionTreeNode tornadoDecision = new BooleanDecision(() -> {
             return new TornadoAction(user, rand.nextInt(2000) + rand.nextInt(2000));
-        }, () -> fallbackNode, () -> Math.random() < (1.0 / 8.0) && !user.isOnCooldown(tornadoDesc) && WorldUtil.isOnGround(user));
+        }, () -> closeRangeDecision, () -> Math.random() < (1.0 / 8.0) && !user.isOnCooldown(tornadoDesc) && WorldUtil.isOnGround(user));
 
         DecisionTreeNode sweepDecision = new BooleanDecision(() -> {
             return new AirSweepAction(user);
-        }, () -> tornadoDecision, () -> !user.isOnCooldown(airSweepDesc));
+        }, () -> tornadoDecision, () -> !user.isOnCooldown(airSweepDesc) && user.getLocation().distanceSquared(user.getTarget().getLocation()) < 15 * 15);
 
         DecisionTreeNode scooterDecision = new BooleanDecision(() -> {
             return new AirScooterAction(user, 10.0);
