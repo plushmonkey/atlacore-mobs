@@ -11,11 +11,10 @@ import com.plushnode.atlacoremobs.AtlaCoreMobsPlugin;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.compatibility.DisguiseUtil;
 import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
+import com.plushnode.atlacoremobs.util.SpawnUtil;
 import org.bukkit.*;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -23,26 +22,10 @@ import org.bukkit.util.Vector;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class Raid {
-    private static final Material[] TRANSPARENT_MATERIALS = { Material.AIR, Material.SAPLING, Material.WATER,
-            Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA, Material.POWERED_RAIL,
-            Material.DETECTOR_RAIL, Material.WEB, Material.LONG_GRASS, Material.DEAD_BUSH, Material.YELLOW_FLOWER,
-            Material.RED_ROSE, Material.BROWN_MUSHROOM, Material.RED_MUSHROOM, Material.TORCH, Material.FIRE,
-            Material.REDSTONE_WIRE, Material.CROPS, Material.LADDER, Material.RAILS, Material.SIGN_POST, Material.LEVER,
-            Material.STONE_PLATE, Material.WOOD_PLATE, Material.REDSTONE_TORCH_OFF, Material.REDSTONE_TORCH_ON,
-            Material.STONE_BUTTON, Material.SNOW, Material.SUGAR_CANE_BLOCK, Material.PORTAL, Material.DIODE_BLOCK_OFF,
-            Material.DIODE_BLOCK_ON, Material.PUMPKIN_STEM, Material.MELON_STEM, Material.VINE, Material.WATER_LILY,
-            Material.NETHER_STALK, Material.ENDER_PORTAL, Material.COCOA, Material.TRIPWIRE_HOOK, Material.TRIPWIRE,
-            Material.FLOWER_POT, Material.CARROT, Material.POTATO, Material.WOOD_BUTTON, Material.GOLD_PLATE,
-            Material.IRON_PLATE, Material.REDSTONE_COMPARATOR_OFF, Material.REDSTONE_COMPARATOR_ON,
-            Material.DAYLIGHT_DETECTOR, Material.CARPET, Material.DOUBLE_PLANT, Material.STANDING_BANNER,
-            Material.WALL_BANNER, Material.DAYLIGHT_DETECTOR_INVERTED, Material.END_ROD, Material.CHORUS_PLANT,
-            Material.CHORUS_FLOWER, Material.BEETROOT_BLOCK, Material.END_GATEWAY };
-
     private AtlaCoreMobsPlugin plugin;
     private Town town;
     private Nation nation;
@@ -245,7 +228,7 @@ public class Raid {
             for (; y <= highestY; ++y) {
                 Location location = new Location(world, x, y, z);
 
-                if (isSpawnableLocation(location)) {
+                if (SpawnUtil.isSpawnableLocation(location)) {
                     spawns.add(location);
                     break;
                 }
@@ -253,18 +236,6 @@ public class Raid {
         }
 
         return spawns;
-    }
-
-    private boolean isSpawnableLocation(Location location) {
-        Block below = location.getBlock().getRelative(BlockFace.DOWN);
-        Block current = location.getBlock();
-        Block above = location.getBlock().getRelative(BlockFace.UP);
-
-        return isSolid(below) && !isSolid(current) && !isSolid(above);
-    }
-
-    private boolean isSolid(Block block) {
-        return !Arrays.asList(TRANSPARENT_MATERIALS).contains(block.getType());
     }
 
     private boolean isFinished() {

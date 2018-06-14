@@ -10,6 +10,7 @@ repositories {
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 	maven { url "http://repo.dmulloy2.net/nexus/repository/public/" }
 	maven { url "http://repo.md-5.net/content/groups/public/" }
+	maven { url "http://maven.sk89q.com/repo/" }
 	flatDir {
 		dirs 'libs'
 		dirs 'atlacore/atlacore-bukkit/bin/libs'
@@ -48,6 +49,8 @@ dependencies {
 	compile name: 'atlacore-bukkit-0.1'
 	compile name: 'MobArena'
 	compile name: 'Towny-0.90'
+	compile 'com.sk89q.worldguard:worldguard-legacy:6.+'
+	compile 'com.sk89q.worldedit:worldedit-core:6.+'
 	compile 'LibsDisguises:LibsDisguises:9.+'
 	compile 'com.comphenix.protocol:ProtocolLib-API:4.+'
 	compile 'com.projectkorra:projectkorra:1.8.+'

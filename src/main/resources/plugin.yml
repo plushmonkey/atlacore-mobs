@@ -3,7 +3,7 @@ author: plushmonkey
 version: ${version}
 main: com.plushnode.atlacoremobs.AtlaCoreMobsPlugin
 depend: [AtlaCore]
-softdepend: [ProjectKorra, MobArena, Towny]
+softdepend: [ProjectKorra, MobArena, Towny, WorldGuard]
 commands:
   acmobs:
     usage: /<command>

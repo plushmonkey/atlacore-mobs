@@ -5,7 +5,6 @@ import com.plushnode.atlacore.internal.ninja.configurate.ConfigurationOptions;
 import com.plushnode.atlacore.internal.ninja.configurate.commented.CommentedConfigurationNode;
 import com.plushnode.atlacore.internal.ninja.configurate.hocon.HoconConfigurationLoader;
 import com.plushnode.atlacore.internal.ninja.configurate.loader.ConfigurationLoader;
-import com.plushnode.atlacore.util.Task;
 import com.plushnode.atlacoremobs.commands.CommandMultiplexer;
 import com.plushnode.atlacoremobs.commands.ReloadConfigCommand;
 import com.plushnode.atlacoremobs.compatibility.projectkorra.ProjectKorraHook;
@@ -14,6 +13,7 @@ import com.plushnode.atlacoremobs.modules.raid.Raid;
 import com.plushnode.atlacoremobs.modules.raid.TownyRaidGame;
 import com.plushnode.atlacoremobs.listeners.EntityListener;
 import com.plushnode.atlacoremobs.modules.spawn.SpawnManager;
+import com.plushnode.atlacoremobs.modules.trainingarena.TrainingArenaModule;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -30,6 +30,7 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
     private TownyRaidGame raidGame;
     private CommandMultiplexer commandMultiplexer;
     private SpawnManager spawnManager;
+    private TrainingArenaModule trainingArena;
 
     @Override
     public void onEnable() {
@@ -49,6 +50,7 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
         mobArenaGame = new MobArenaGame(this);
         raidGame = new TownyRaidGame(this);
         spawnManager = new SpawnManager(this);
+        trainingArena = new TrainingArenaModule(this);
 
         boolean pkCollisions = getConfigRoot().getNode("projectkorra", "collisions").getBoolean(false);
         if (pkCollisions && this.getServer().getPluginManager().getPlugin("ProjectKorra") != null) {
@@ -73,6 +75,7 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
         }
 
         spawnManager.destroySpawns();
+        trainingArena.stop();
     }
 
     public void loadConfig() {
@@ -103,11 +106,13 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
     public void reload() throws IOException {
         this.mobArenaGame.stop();
         this.raidGame.stop();
+        this.trainingArena.stop();
 
         configRoot = loader.load();
 
         mobArenaGame = new MobArenaGame(this);
         raidGame = new TownyRaidGame(this);
+        trainingArena = new TrainingArenaModule(this);
     }
 
     public ScriptedUserService getUserService() {

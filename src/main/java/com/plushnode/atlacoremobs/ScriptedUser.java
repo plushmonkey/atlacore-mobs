@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ScriptedUser extends BukkitBendingUser {
-    private static final List<String> SMOOTHED_ABILITIES = Arrays.asList("FireJet", "JetBlast", "JetBlaze");
+    private static final List<String> SMOOTHED_ABILITIES = Arrays.asList("FireJet", "JetBlast", "JetBlaze", "Combustion");
 
     private User target;
     private TargetSelector targetSelector;
