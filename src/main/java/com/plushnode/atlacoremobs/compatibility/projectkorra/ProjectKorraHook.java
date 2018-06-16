@@ -1,24 +1,29 @@
 package com.plushnode.atlacoremobs.compatibility.projectkorra;
 
 import com.plushnode.atlacore.game.Game;
+import com.plushnode.atlacore.game.ability.*;
 import com.plushnode.atlacore.game.ability.Ability;
-import com.plushnode.atlacore.game.ability.AbilityDescription;
-import com.plushnode.atlacore.game.ability.ActivationMethod;
-import com.plushnode.atlacore.game.ability.GenericAbilityDescription;
 import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacore.platform.User;
 import com.projectkorra.projectkorra.ProjectKorra;
-import com.projectkorra.projectkorra.ability.CoreAbility;
+import com.projectkorra.projectkorra.ability.*;
 import com.projectkorra.projectkorra.ability.util.Collision;
+import com.projectkorra.projectkorra.earthbending.Tremorsense;
+import com.projectkorra.projectkorra.firebending.Illumination;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
 public class ProjectKorraHook {
+    private static final List<Class<? extends CoreAbility>> PASSIVE_ABILITIES = Arrays.asList(Illumination.class, Tremorsense.class);
+    private static boolean enabled = false;
+
     private User pkUser;
     private ProjectKorraCollisionAbility ability;
     private List<Collision> collidables = new ArrayList<>();
@@ -33,6 +38,8 @@ public class ProjectKorraHook {
         desc.setHidden(true);
         desc.setHarmless(true);
         Game.getAbilityRegistry().registerAbility(desc);
+
+        enabled = true;
     }
 
     public void createAbility() {
@@ -102,5 +109,39 @@ public class ProjectKorraHook {
 
     public List<Collision> getRegisteredCollisions() {
         return ProjectKorra.getCollisionManager().getCollisions();
+    }
+
+    // Attempts to remove flight from all of the players in the arena if they aren't using any abilities.
+    public static void fixFlight(List<Player> players) {
+        if (!enabled) return;
+
+        Collection<CoreAbility> abilities = CoreAbility.getAbilitiesByInstances();
+
+        for (Player player : players) {
+            GameMode gm = player.getGameMode();
+
+            if (gm != GameMode.SURVIVAL) continue;
+            if (!player.isFlying() && !player.getAllowFlight()) continue;
+
+            boolean hasAbility = abilities.parallelStream()
+                    .anyMatch((ability) -> ability.getPlayer() == player && isRealAbility(ability));
+
+            if (!hasAbility) {
+                player.setFlying(false);
+                player.setAllowFlight(false);
+            }
+        }
+    }
+
+    private static boolean isRealAbility(CoreAbility ability) {
+        return !(ability instanceof com.projectkorra.projectkorra.ability.PassiveAbility) && !PASSIVE_ABILITIES.contains(ability.getClass());
+    }
+
+    public static boolean hasAbility(Player player, String name) {
+        if (!enabled) return false;
+
+        CoreAbility ability = CoreAbility.getAbility(name);
+
+        return ability != null && CoreAbility.hasAbility(player, ability.getClass());
     }
 }

@@ -12,8 +12,10 @@ import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
 import com.plushnode.atlacoremobs.modules.spawn.SpawnManager;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 public class SpawnCommand implements MultiplexableCommand {
@@ -104,6 +106,13 @@ public class SpawnCommand implements MultiplexableCommand {
             ScriptedUser user = spawnManager.spawn(player, spawnType, userGenerator);
             if (user != null) {
                 ++numSpawned;
+
+                if (spawnType == EntityType.VILLAGER) {
+                    // Drop villagers down near player sprint speed.
+                    LivingEntity living = (LivingEntity)user.getBukkitEntity();
+                    living.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)
+                            .addModifier(new AttributeModifier("generic.movementSpeed", -0.2, AttributeModifier.Operation.ADD_SCALAR));
+                }
 
                 if (!name.isEmpty()) {
                     user.getBukkitEntity().setCustomName(name);

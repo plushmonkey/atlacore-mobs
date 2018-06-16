@@ -4,6 +4,7 @@ import com.plushnode.atlacore.game.Game;
 import com.plushnode.atlacore.util.Task;
 import com.plushnode.atlacoremobs.AtlaCoreMobsPlugin;
 import com.plushnode.atlacoremobs.ScriptedUser;
+import com.plushnode.atlacoremobs.compatibility.projectkorra.ProjectKorraHook;
 import com.plushnode.atlacoremobs.generator.ScriptedAirbenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
@@ -14,14 +15,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.*;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TrainingArenaModule {
     private static final List<EntityType> ENTITY_TYPES = Arrays.asList(EntityType.VILLAGER, EntityType.VILLAGER,
@@ -89,9 +90,9 @@ public class TrainingArenaModule {
 
         Random rand = new Random();
 
-        int playerCount = getPlayerCount(region);
+        List<Player> players = getPlayers(region);
 
-        if (playerCount > spawns.size() && time >= this.nextAllowedSpawnTime) {
+        if (players.size() > spawns.size() && time >= this.nextAllowedSpawnTime) {
             EntityType type = ENTITY_TYPES.get(rand.nextInt(ENTITY_TYPES.size()));
             ScriptedUserGenerator generator = new ScriptedAirbenderGenerator();
 
@@ -100,7 +101,7 @@ public class TrainingArenaModule {
             }
 
             spawn(type, generator, rand);
-        } else if (playerCount < spawns.size()) {
+        } else if (players.size() < spawns.size()) {
             Iterator<LivingEntity> iterator = spawns.iterator();
 
             if (iterator.hasNext()) {
@@ -111,6 +112,7 @@ public class TrainingArenaModule {
         }
 
         enforceArena(region);
+        ProjectKorraHook.fixFlight(players);
     }
 
     // Destroy any scripted mob that leaves the training arena or dies.
@@ -142,28 +144,29 @@ public class TrainingArenaModule {
         for (Entity entity : world.getNearbyEntities(mid, halfDiffX, halfDiffY, halfDiffZ)) {
             if (!(entity instanceof LivingEntity)) continue;
             if (entity instanceof Player) continue;
+            if (entity instanceof ArmorStand) continue;
 
-            LivingEntity living = (LivingEntity) entity;
-
-            if (!spawns.contains(living)) {
+            if (plugin.getUserService().get(entity) == null) {
                 entity.remove();
             }
         }
     }
 
-    private int getPlayerCount(ProtectedRegion region) {
+    private List<Player> getPlayers(ProtectedRegion region) {
         if (region == null) {
-            return 0;
+            return Collections.emptyList();
         }
 
-        return (int)Bukkit.getOnlinePlayers().stream()
+        return Bukkit.getOnlinePlayers().stream()
                 .filter((player) -> {
                     Vector p = player.getLocation().toVector();
 
                     GameMode gm = player.getGameMode();
 
-                    return !player.isDead() && gm == GameMode.SURVIVAL && region.contains(p.getBlockX(), p.getBlockY(), p.getBlockZ());
-                }).count();
+                    boolean isInSurvival = gm == GameMode.SURVIVAL || ProjectKorraHook.hasAbility(player, "Phase");
+
+                    return !player.isDead() && isInSurvival && region.contains(p.getBlockX(), p.getBlockY(), p.getBlockZ());
+                }).collect(Collectors.toList());
     }
 
     private ScriptedUser spawn(EntityType type, ScriptedUserGenerator generator, Random rand) {
@@ -193,6 +196,12 @@ public class TrainingArenaModule {
 
         LivingEntity entity = (LivingEntity)e;
         spawns.add(entity);
+
+        if (type == EntityType.VILLAGER) {
+            // Drop villagers down near player sprint speed.
+            entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)
+                    .addModifier(new AttributeModifier("generic.movementSpeed", -0.2, AttributeModifier.Operation.ADD_SCALAR));
+        }
 
         return plugin.getUserService().create(entity, generator);
     }

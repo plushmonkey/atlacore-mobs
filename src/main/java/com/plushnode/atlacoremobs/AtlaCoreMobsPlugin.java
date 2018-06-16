@@ -52,10 +52,14 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
         spawnManager = new SpawnManager(this);
         trainingArena = new TrainingArenaModule(this);
 
-        boolean pkCollisions = getConfigRoot().getNode("projectkorra", "collisions").getBoolean(false);
-        if (pkCollisions && this.getServer().getPluginManager().getPlugin("ProjectKorra") != null) {
+        if (this.getServer().getPluginManager().getPlugin("ProjectKorra") != null) {
             ProjectKorraHook pkh = new ProjectKorraHook();
-            Game.plugin.createTask(pkh::createAbility, 20);
+
+            boolean pkCollisions = getConfigRoot().getNode("projectkorra", "collisions").getBoolean(false);
+
+            if (pkCollisions) {
+                Game.plugin.createTask(pkh::createAbility, 20);
+            }
         }
 
         try {
