@@ -1,7 +1,9 @@
 package com.plushnode.atlacoremobs.util;
 
 import com.plushnode.atlacoremobs.wrappers.pathfinder.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 
 // Utility class for controlling NMS pathfinder.
 public final class PathfinderUtil {
@@ -24,7 +26,10 @@ public final class PathfinderUtil {
 
         PathfinderGoalSelector goalSelector = new PathfinderGoalSelector(entity, PathfinderGoalSelector.SelectorType.Goal);
 
+        goalSelector.clearSets();
+
         goalSelector.setGoal(0, new PathfinderGoalFloat(entity));
+        goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, false));
         goalSelector.setGoal(5, new PathfinderGoalMoveTowardsRestriction(entity, 1.0));
         goalSelector.setGoal(7, new PathfinderGoalRandomStroll(entity, 1.0));
         goalSelector.setGoal(8, new PathfinderGoalLookAtPlayer(entity, ReflectionUtil.EntityHuman, 1.0f));
@@ -32,7 +37,12 @@ public final class PathfinderUtil {
 
         PathfinderGoalSelector targetSelector = new PathfinderGoalSelector(entity, PathfinderGoalSelector.SelectorType.Target);
 
-        goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, true));
-        targetSelector.setGoal(2, new PathfinderGoalNearestAttackableTarget(entity, ReflectionUtil.EntityHuman, 0, true, false, null));
+        targetSelector.clearSets();
+        targetSelector.setGoal(2, new PathfinderGoalNearestAttackableTarget(entity, ReflectionUtil.EntityHuman, 10, true, false, null));
+
+        // Non-monsters don't have ATTACK_DAMAGE initialized, which is required for the PathfinderGoalMeleeAttack.
+        if (((LivingEntity)entity).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) == null) {
+            AttributeUtil.initializeAttackDamage(entity);
+        }
     }
 }

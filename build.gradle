@@ -46,15 +46,15 @@ jar {
 }
 
 dependencies {
-	compile name: 'atlacore-bukkit-0.1'
+	compile name: 'atlacore-bukkit-0.2'
 	compile name: 'MobArena'
 	compile name: 'Towny-0.90'
-	compile 'com.sk89q.worldguard:worldguard-legacy:6.+'
-	compile 'com.sk89q.worldedit:worldedit-core:6.+'
+	compile 'com.sk89q.worldguard:worldguard-legacy:7.+'
+	compile 'com.sk89q.worldedit:worldedit-bukkit:7.+'
 	compile 'LibsDisguises:LibsDisguises:9.+'
 	compile 'com.comphenix.protocol:ProtocolLib-API:4.+'
-	compile 'com.projectkorra:projectkorra:1.8.+'
-	compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+	compile 'com.projectkorra:projectkorra:1.8.4.30'
+	compile 'org.spigotmc:spigot-api:1.13.1-R0.1-SNAPSHOT'
 }
 
 buildDir = 'bin'

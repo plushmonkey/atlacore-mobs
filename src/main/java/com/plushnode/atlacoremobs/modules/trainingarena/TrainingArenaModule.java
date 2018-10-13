@@ -9,7 +9,9 @@ import com.plushnode.atlacoremobs.generator.ScriptedAirbenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
 import com.plushnode.atlacoremobs.util.SpawnUtil;
-import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -82,7 +84,12 @@ public class TrainingArenaModule {
 
         this.nextUpdateTime = time + this.updateDelay;
 
-        ProtectedRegion region = WGBukkit.getRegionManager(world).getRegion(regionName);
+        RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+        if (manager == null) {
+            return;
+        }
+
+        ProtectedRegion region = manager.getRegion(regionName);
 
         if (region == null) {
             return;
@@ -112,7 +119,10 @@ public class TrainingArenaModule {
         }
 
         enforceArena(region);
-        ProjectKorraHook.fixFlight(players);
+
+        if (Bukkit.getPluginManager().getPlugin("ProjectKorra") != null) {
+            ProjectKorraHook.fixFlight(players);
+        }
     }
 
     // Destroy any scripted mob that leaves the training arena or dies.
@@ -170,7 +180,12 @@ public class TrainingArenaModule {
     }
 
     private ScriptedUser spawn(EntityType type, ScriptedUserGenerator generator, Random rand) {
-        ProtectedRegion region = WGBukkit.getRegionManager(world).getRegion(regionName);
+        RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+        if (manager == null) {
+            return null;
+        }
+
+        ProtectedRegion region = manager.getRegion(regionName);
 
         if (region == null) {
             return null;

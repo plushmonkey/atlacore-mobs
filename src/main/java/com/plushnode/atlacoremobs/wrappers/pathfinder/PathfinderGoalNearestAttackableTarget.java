@@ -1,11 +1,11 @@
 package com.plushnode.atlacoremobs.wrappers.pathfinder;
 
-import com.google.common.base.Predicate;
 import com.plushnode.atlacoremobs.util.ReflectionUtil;
 import org.bukkit.entity.Entity;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.Predicate;
 
 public class PathfinderGoalNearestAttackableTarget implements PathfinderGoal {
     private static Class<?> InternalClass;

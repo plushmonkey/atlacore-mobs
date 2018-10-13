@@ -4,6 +4,7 @@ version: ${version}
 main: com.plushnode.atlacoremobs.AtlaCoreMobsPlugin
 depend: [AtlaCore]
 softdepend: [ProjectKorra, MobArena, Towny, WorldGuard]
+api-version: 1.13
 commands:
   acmobs:
     usage: /<command>

@@ -72,7 +72,7 @@ public class ScriptedAirbenderGenerator implements ScriptedUserGenerator {
 
         DecisionTreeNode scooterDecision = new BooleanDecision(() -> {
             return new AirScooterAction(user, 10.0);
-        }, () -> sweepDecision, () -> !user.isOnCooldown(scooterDesc) && WorldUtil.distanceAboveGround(user, Collections.singleton(Material.STATIONARY_WATER)) < 4.0);
+        }, () -> sweepDecision, () -> !user.isOnCooldown(scooterDesc) && WorldUtil.distanceAboveGround(user, Collections.singleton(Material.WATER)) < 4.0);
 
         DecisionTreeNode airBlastDecision = new BooleanDecision(() -> {
             User target = user.getTarget();
