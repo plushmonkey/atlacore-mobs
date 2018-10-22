@@ -33,7 +33,7 @@ public class AirBlastAction extends DecisionAction {
             return;
         }
 
-        int index = user.getAbilityIndex("AirScooter");
+        int index = user.getAbilityIndex("AirBlast");
         if (index == -1) {
             this.done = true;
             return;
@@ -63,8 +63,9 @@ public class AirBlastAction extends DecisionAction {
 
                 if (ability.activate(user, ActivationMethod.Punch)) {
                     Game.getAbilityInstanceManager().addAbility(user, ability);
-                    this.done = true;
                 }
+
+                this.done = true;
             }
         }
     }

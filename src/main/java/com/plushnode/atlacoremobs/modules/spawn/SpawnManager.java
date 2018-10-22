@@ -32,6 +32,7 @@ public class SpawnManager {
 
     public ScriptedUser spawn(Player creator, EntityType type, ScriptedUserGenerator generator) {
         Entity e = creator.getWorld().spawnEntity(creator.getLocation(), type);
+
         if (!(e instanceof LivingEntity)) {
             e.remove();
             return null;

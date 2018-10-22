@@ -1,14 +1,10 @@
 package com.plushnode.atlacoremobs.modules.spawn.commands;
 
-import com.plushnode.atlacore.game.element.Element;
-import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacoremobs.AtlaCoreMobsPlugin;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.commands.MultiplexableCommand;
 import com.plushnode.atlacoremobs.compatibility.DisguiseUtil;
-import com.plushnode.atlacoremobs.generator.ScriptedAirbenderGenerator;
-import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
-import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
+import com.plushnode.atlacoremobs.generator.*;
 import com.plushnode.atlacoremobs.modules.spawn.SpawnManager;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
@@ -59,6 +55,12 @@ public class SpawnCommand implements MultiplexableCommand {
                     break;
                     case 'a':
                         userGenerator = new ScriptedAirbenderGenerator();
+                    break;
+                    case 'e':
+                        userGenerator = new ScriptedEarthbenderGenerator();
+                    break;
+                    case 'n':
+                        userGenerator = new ScriptedNullGenerator();
                     break;
                     default:
                         userGenerator = new ScriptedFirebenderGenerator();

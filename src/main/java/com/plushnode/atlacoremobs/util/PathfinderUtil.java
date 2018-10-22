@@ -5,6 +5,11 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 // Utility class for controlling NMS pathfinder.
 public final class PathfinderUtil {
     private PathfinderUtil() {
@@ -44,5 +49,9 @@ public final class PathfinderUtil {
         if (((LivingEntity)entity).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) == null) {
             AttributeUtil.initializeAttackDamage(entity);
         }
+
+        // Sets an entity's navigation to the default one.
+        // The default navigation is required for one of the goals. It will crash if a turtle is spawned without it.
+        NavigationUtil.setDefaultNavigation(entity);
     }
 }
