@@ -40,6 +40,7 @@ public class TrainingArenaModule {
     private long updateDelay;
     private long nextAllowedSpawnTime;
     private long spawnDelay;
+    private boolean hasPK;
 
     public TrainingArenaModule(AtlaCoreMobsPlugin plugin) {
         this.plugin = plugin;
@@ -61,6 +62,8 @@ public class TrainingArenaModule {
         this.regionName = plugin.getConfigRoot().getNode("training-arena", "region", "name").getString("ai-training");
         this.updateDelay = plugin.getConfigRoot().getNode("training-arena", "update-delay").getLong(1000);
         this.spawnDelay = plugin.getConfigRoot().getNode("training-arena", "spawn-delay").getLong(5000);
+
+        this.hasPK = Bukkit.getPluginManager().getPlugin("ProjectKorra") != null;
     }
 
     public void stop() {
@@ -120,7 +123,7 @@ public class TrainingArenaModule {
 
         enforceArena(region);
 
-        if (Bukkit.getPluginManager().getPlugin("ProjectKorra") != null) {
+        if (hasPK) {
             ProjectKorraHook.fixFlight(players);
         }
     }
@@ -173,7 +176,7 @@ public class TrainingArenaModule {
 
                     GameMode gm = player.getGameMode();
 
-                    boolean isInSurvival = gm == GameMode.SURVIVAL || ProjectKorraHook.hasAbility(player, "Phase");
+                    boolean isInSurvival = gm == GameMode.SURVIVAL || (hasPK && ProjectKorraHook.hasAbility(player, "Phase"));
 
                     return !player.isDead() && isInSurvival && region.contains(p.getBlockX(), p.getBlockY(), p.getBlockZ());
                 }).collect(Collectors.toList());
