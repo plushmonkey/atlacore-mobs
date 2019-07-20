@@ -1,7 +1,7 @@
 apply plugin: 'idea'
 apply plugin: 'java'
 
-version = '0.2'
+version = '0.5'
 
 repositories {
 	mavenCentral()
@@ -46,14 +46,15 @@ jar {
 }
 
 dependencies {
-	compile name: 'atlacore-bukkit-0.2'
+	compile name: 'atlacore-bukkit-0.5'
 	compile name: 'MobArena'
 	compile name: 'Towny-0.90'
-	compile 'com.sk89q.worldguard:worldguard-legacy:7.+'
-	compile 'com.sk89q.worldedit:worldedit-bukkit:7.+'
+	compile 'com.sk89q.worldedit:worldedit-core:7.0.0-SNAPSHOT'
+	compile 'com.sk89q.worldedit:worldedit-bukkit:7.0.0-SNAPSHOT'
+	compile 'com.sk89q.worldguard:worldguard-core:7.0.0-SNAPSHOT'
 	compile 'LibsDisguises:LibsDisguises:9.+'
 	compile 'com.comphenix.protocol:ProtocolLib-API:4.+'
-	compile 'com.projectkorra:projectkorra:1.8.4.30'
+	compile 'com.projectkorra:projectkorra:1.8.4.34'
 	compile 'org.spigotmc:spigot-api:1.13.1-R0.1-SNAPSHOT'
 }
 

@@ -6,10 +6,10 @@ import com.plushnode.atlacore.platform.Player;
 import com.plushnode.atlacore.platform.PotionEffectType;
 import com.plushnode.atlacore.platform.User;
 
-public class NearestPlayerTargetSelector implements TargetSelector {
+public class NearestPlayerTargetPolicy implements TargetPolicy {
     private ScriptedUser user;
 
-    public NearestPlayerTargetSelector(ScriptedUser user) {
+    public NearestPlayerTargetPolicy(ScriptedUser user) {
         this.user = user;
     }
 

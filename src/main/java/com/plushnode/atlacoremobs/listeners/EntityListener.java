@@ -17,12 +17,24 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EntityListener implements Listener {
     private AtlaCoreMobsPlugin plugin;
 
     public EntityListener(AtlaCoreMobsPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        plugin.getTrackingService().addPlayer(event.getPlayer());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        plugin.getTrackingService().removePlayer(event.getPlayer());
     }
 
     @EventHandler(ignoreCancelled = true)

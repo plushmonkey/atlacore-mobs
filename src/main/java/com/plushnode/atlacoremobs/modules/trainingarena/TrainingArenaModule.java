@@ -3,13 +3,16 @@ package com.plushnode.atlacoremobs.modules.trainingarena;
 import com.plushnode.atlacore.game.Game;
 import com.plushnode.atlacore.util.Task;
 import com.plushnode.atlacoremobs.AtlaCoreMobsPlugin;
+import com.plushnode.atlacoremobs.GaussianAimPolicy;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.compatibility.projectkorra.ProjectKorraHook;
 import com.plushnode.atlacoremobs.generator.ScriptedAirbenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedFirebenderGenerator;
 import com.plushnode.atlacoremobs.generator.ScriptedUserGenerator;
+import com.plushnode.atlacoremobs.modules.trainingarena.listeners.TrainingArenaListener;
 import com.plushnode.atlacoremobs.util.SpawnUtil;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -20,6 +23,8 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
@@ -34,16 +39,20 @@ public class TrainingArenaModule {
     private AtlaCoreMobsPlugin plugin;
     private Task updateTask;
     private String regionName;
-    private World world;
+    private String worldName;
     private Set<LivingEntity> spawns = new HashSet<>();
     private long nextUpdateTime;
     private long updateDelay;
     private long nextAllowedSpawnTime;
     private long spawnDelay;
     private boolean hasPK;
+    private double spawnRadius;
+    private KillTracker killTracker;
+    private boolean predictiveAiming;
 
     public TrainingArenaModule(AtlaCoreMobsPlugin plugin) {
         this.plugin = plugin;
+        this.killTracker = new KillTracker();
 
         boolean trainingArena = plugin.getConfigRoot().getNode("training-arena", "enabled").getBoolean(false);
 
@@ -51,8 +60,8 @@ public class TrainingArenaModule {
             return;
         }
 
-        String worldName = plugin.getConfigRoot().getNode("training-arena", "region", "world").getString("world");
-        world = Bukkit.getWorld(worldName);
+        worldName = plugin.getConfigRoot().getNode("training-arena", "region", "world").getString("world");
+        World world = Bukkit.getWorld(worldName);
 
         if (world == null) {
             return;
@@ -62,8 +71,28 @@ public class TrainingArenaModule {
         this.regionName = plugin.getConfigRoot().getNode("training-arena", "region", "name").getString("ai-training");
         this.updateDelay = plugin.getConfigRoot().getNode("training-arena", "update-delay").getLong(1000);
         this.spawnDelay = plugin.getConfigRoot().getNode("training-arena", "spawn-delay").getLong(5000);
+        this.spawnRadius = plugin.getConfigRoot().getNode("training-arena", "spawn-radius").getDouble(20.0);
+        this.predictiveAiming = plugin.getConfigRoot().getNode("training-arena", "predictive-aiming").getBoolean(true);
 
         this.hasPK = Bukkit.getPluginManager().getPlugin("ProjectKorra") != null;
+
+        Bukkit.getPluginManager().registerEvents(new TrainingArenaListener(this), plugin);
+    }
+
+    public KillTracker getKillTracker() {
+        return killTracker;
+    }
+
+    public boolean isSpawn(LivingEntity entity) {
+        return spawns.contains(entity);
+    }
+
+    public boolean inArena(Location location) {
+        ProtectedRegion region = getRegion();
+        if (region == null) return false;
+
+        if (!location.getWorld().getName().equals(this.worldName)) return false;
+        return region.contains(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     public void stop() {
@@ -87,6 +116,12 @@ public class TrainingArenaModule {
 
         this.nextUpdateTime = time + this.updateDelay;
 
+        World world = Bukkit.getWorld(this.worldName);
+
+        if (world == null) {
+            return;
+        }
+
         RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
         if (manager == null) {
             return;
@@ -100,7 +135,9 @@ public class TrainingArenaModule {
 
         Random rand = new Random();
 
-        List<Player> players = getPlayers(region);
+        List<Player> players = getPlayers(region, world);
+
+        killTracker.acceptOnly(players);
 
         if (players.size() > spawns.size() && time >= this.nextAllowedSpawnTime) {
             EntityType type = ENTITY_TYPES.get(rand.nextInt(ENTITY_TYPES.size()));
@@ -110,26 +147,76 @@ public class TrainingArenaModule {
                 generator = new ScriptedFirebenderGenerator();
             }
 
-            spawn(type, generator, rand);
-        } else if (players.size() < spawns.size()) {
-            Iterator<LivingEntity> iterator = spawns.iterator();
+            ScriptedUser spawnedUser = spawn(world, type, generator, rand, players);
 
-            if (iterator.hasNext()) {
-                LivingEntity entity = iterator.next();
-                entity.remove();
-                iterator.remove();
+            if (spawnedUser != null) {
+                // Spawn them in with a random aiming difficulty.
+                double sd = 0.15 + rand.nextDouble() * 0.85;
+
+                spawnedUser.setAimPolicy(new GaussianAimPolicy(0.0, sd, 20.0, this.predictiveAiming));
+            }
+        } else if (players.size() < spawns.size()) {
+            if (!removeNonCombatSpawn()) {
+                removeRandomSpawn();
             }
         }
 
-        enforceArena(region);
+        enforceArena(world, region);
 
         if (hasPK) {
-            ProjectKorraHook.fixFlight(players);
+            //ProjectKorraHook.fixFlight(players);
         }
     }
 
+    // Tries to remove a spawn that last took damage from a player that is currently out of the arena.
+    private boolean removeNonCombatSpawn() {
+        for (Iterator<LivingEntity> iter = spawns.iterator(); iter.hasNext();) {
+            LivingEntity entity = iter.next();
+
+            EntityDamageEvent event = entity.getLastDamageCause();
+            if (event instanceof EntityDamageByEntityEvent) {
+                Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+
+                if (damager instanceof Player) {
+                    if (!inArena(damager.getLocation())) {
+                        entity.remove();
+                        iter.remove();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void removeRandomSpawn() {
+        Iterator<LivingEntity> iterator = spawns.iterator();
+
+        if (iterator.hasNext()) {
+            LivingEntity entity = iterator.next();
+            entity.remove();
+            iterator.remove();
+        }
+    }
+
+    private ProtectedRegion getRegion() {
+        World world = Bukkit.getWorld(this.worldName);
+
+        if (world == null) {
+            return null;
+        }
+
+        RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+        if (manager == null) {
+            return null;
+        }
+
+        return manager.getRegion(regionName);
+    }
+
     // Destroy any scripted mob that leaves the training arena or dies.
-    private void enforceArena(ProtectedRegion region) {
+    private void enforceArena(World world, ProtectedRegion region) {
         for (Iterator<LivingEntity> iterator = spawns.iterator(); iterator.hasNext();) {
             LivingEntity entity = iterator.next();
             Location p = entity.getLocation();
@@ -142,8 +229,8 @@ public class TrainingArenaModule {
             }
         }
 
-        com.sk89q.worldedit.BlockVector rmin = region.getMinimumPoint();
-        com.sk89q.worldedit.BlockVector rmax = region.getMaximumPoint();
+        BlockVector3 rmin = region.getMinimumPoint();
+        BlockVector3 rmax = region.getMaximumPoint();
 
         BlockVector min = new BlockVector(rmin.getX(), rmin.getY(), rmin.getZ());
         BlockVector max = new BlockVector(rmax.getX(), rmax.getY(), rmax.getZ());
@@ -165,7 +252,7 @@ public class TrainingArenaModule {
         }
     }
 
-    private List<Player> getPlayers(ProtectedRegion region) {
+    private List<Player> getPlayers(ProtectedRegion region, World world) {
         if (region == null) {
             return Collections.emptyList();
         }
@@ -173,6 +260,10 @@ public class TrainingArenaModule {
         return Bukkit.getOnlinePlayers().stream()
                 .filter((player) -> {
                     Vector p = player.getLocation().toVector();
+
+                    if (!player.getWorld().getName().equals(world.getName())) {
+                        return false;
+                    }
 
                     GameMode gm = player.getGameMode();
 
@@ -182,7 +273,7 @@ public class TrainingArenaModule {
                 }).collect(Collectors.toList());
     }
 
-    private ScriptedUser spawn(EntityType type, ScriptedUserGenerator generator, Random rand) {
+    private ScriptedUser spawn(World world, EntityType type, ScriptedUserGenerator generator, Random rand, List<Player> regionPlayers) {
         RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
         if (manager == null) {
             return null;
@@ -194,8 +285,30 @@ public class TrainingArenaModule {
             return null;
         }
 
-        com.sk89q.worldedit.BlockVector rmin = region.getMinimumPoint();
-        com.sk89q.worldedit.BlockVector rmax = region.getMaximumPoint();
+        double maxRadius = spawnRadius;
+        double minRadius = 0.0;
+
+        if (regionPlayers.size() == 1) {
+            // Don't spawn the mob near players that are just entering.
+            minRadius = 20.0;
+            maxRadius = 40.0;
+        }
+
+        Player target = regionPlayers.get(rand.nextInt(regionPlayers.size()));
+
+        Location rmin = target.getLocation().clone().subtract(maxRadius, 0, maxRadius);
+        Location rmax = target.getLocation().clone().add(maxRadius, 0, maxRadius);
+
+        // Clamp the spawnable region to the training region.
+        if (rmin.getX() < region.getMinimumPoint().getX()) rmin.setX(region.getMinimumPoint().getX());
+        if (rmin.getZ() < region.getMinimumPoint().getZ()) rmin.setZ(region.getMinimumPoint().getZ());
+        if (rmin.getX() > region.getMaximumPoint().getX()) rmin.setX(region.getMaximumPoint().getX());
+        if (rmin.getZ() > region.getMaximumPoint().getZ()) rmin.setZ(region.getMaximumPoint().getZ());
+
+        if (rmax.getX() < region.getMinimumPoint().getX()) rmax.setX(region.getMinimumPoint().getX());
+        if (rmax.getZ() < region.getMinimumPoint().getZ()) rmax.setZ(region.getMinimumPoint().getZ());
+        if (rmax.getX() > region.getMaximumPoint().getX()) rmax.setX(region.getMaximumPoint().getX());
+        if (rmax.getZ() > region.getMaximumPoint().getZ()) rmax.setZ(region.getMaximumPoint().getZ());
 
         BlockVector min = new BlockVector(rmin.getX(), rmin.getY(), rmin.getZ());
         BlockVector max = new BlockVector(rmax.getX(), rmax.getY(), rmax.getZ());
@@ -203,6 +316,14 @@ public class TrainingArenaModule {
         Location location = SpawnUtil.getSpawnLocation(world, min, max, rand);
 
         if (location == null) {
+            return null;
+        }
+
+        if (location.distanceSquared(target.getLocation()) < minRadius) {
+            return null;
+        }
+
+        if (!region.contains(location.getBlockX(), location.getBlockY(), location.getBlockZ())) {
             return null;
         }
 

@@ -31,7 +31,7 @@ public class ScriptedAirbenderGenerator implements ScriptedUserGenerator {
 
         weights.put(Game.getAbilityRegistry().getAbilityByName("AirBlast"), 1.0);
         weights.put(Game.getAbilityRegistry().getAbilityByName("AirSwipe"), 13.0);
-        weights.put(Game.getAbilityRegistry().getAbilityByName("Twister"), 1.5);
+        weights.put(Game.getAbilityRegistry().getAbilityByName("Twister"), 0.5);
         weights.put(Game.getAbilityRegistry().getAbilityByName("AirShield"), 5.0);
 
         ScriptedUser user = new ScriptedUser(entity);

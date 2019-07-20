@@ -32,6 +32,11 @@ public class ProjectKorraCollisionAbility implements Ability {
     }
 
     @Override
+    public void recalculateConfig() {
+
+    }
+
+    @Override
     public UpdateResult update() {
         colliderMap.clear();
 

@@ -9,6 +9,9 @@ import com.plushnode.atlacore.util.VectorUtil;
 import com.plushnode.atlacoremobs.decision.*;
 import com.plushnode.atlacoremobs.util.PathfinderUtil;
 import com.plushnode.atlacoremobs.util.VectorSmoother;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.*;
 import org.bukkit.entity.LivingEntity;
 
@@ -19,30 +22,44 @@ public class ScriptedUser extends BukkitBendingUser {
     private static final List<String> SMOOTHED_ABILITIES = Arrays.asList("FireJet", "JetBlast", "JetBlaze", "Combustion");
 
     private User target;
-    private TargetSelector targetSelector;
+    private TargetPolicy targetPolicy;
     private DecisionTreeNode decisionTree;
     private DecisionAction currentAction;
     private boolean sneaking = false;
     private int selectedIndex = 1;
     private VectorSmoother directionSmoother = new VectorSmoother(20);
     private Vector3D direction = Vector3D.PLUS_J;
+    private AimPolicy aimPolicy;
+    private AttributeModifier sneakModifier;
 
     public ScriptedUser(LivingEntity entity) {
         super(entity);
 
+        sneakModifier = new AttributeModifier("generic.movementSpeed", -0.4, AttributeModifier.Operation.ADD_SCALAR);
+
         decisionTree = new RandomAbilityDecision(this, 1500);
-        targetSelector = new NearestPlayerTargetSelector(this);
+        targetPolicy = new NearestPlayerTargetPolicy(this);
 
         PathfinderUtil.disableAI(entity);
         PathfinderUtil.setDefaultAI(entity);
+
+        this.aimPolicy = new GaussianAimPolicy(0.0, 0.4, 40.0, true);
+    }
+
+    public AimPolicy getAimPolicy() {
+        return this.aimPolicy;
+    }
+
+    public void setAimPolicy(AimPolicy module) {
+        this.aimPolicy = module;
     }
 
     public void setDecisionTree(DecisionTreeNode tree) {
         this.decisionTree = tree;
     }
 
-    public void setTargetSelector(TargetSelector targetSelector) {
-        this.targetSelector = targetSelector;
+    public void setTargetPolicy(TargetPolicy targetPolicy) {
+        this.targetPolicy = targetPolicy;
     }
 
     public void setSelectedIndex(int index) {
@@ -113,10 +130,20 @@ public class ScriptedUser extends BukkitBendingUser {
 
     public void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
+
+        AttributeInstance instance = ((LivingEntity) entity).getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+
+        if (instance != null) {
+            if (sneaking && !instance.getModifiers().contains(sneakModifier)) {
+                instance.addModifier(sneakModifier);
+            } else if (!sneaking) {
+                instance.removeModifier(sneakModifier);
+            }
+        }
     }
 
     public void tick() {
-        User newTarget = targetSelector.getTarget();
+        User newTarget = targetPolicy.getTarget();
 
         setTarget(newTarget);
 
@@ -134,7 +161,9 @@ public class ScriptedUser extends BukkitBendingUser {
         setDirection(dir);
 
         if (target.getWorld().equals(getWorld())) {
-            Vector3D d = target.getLocation().subtract(getLocation()).toVector();
+            Location aimTarget = aimPolicy.getTarget(this, target);
+
+            Vector3D d = aimTarget.subtract(getEyeLocation()).toVector();
 
             if (d.getNormSq() == 0) {
                 d = Vector3D.PLUS_I;

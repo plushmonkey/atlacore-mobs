@@ -121,7 +121,13 @@ public class SpawnCommand implements MultiplexableCommand {
                     user.getBukkitEntity().setCustomNameVisible(true);
 
                     if (type == EntityType.PLAYER) {
-                        DisguiseUtil.disguise(user.getBukkitEntity(), name, name);
+                        String skin = name;
+
+                        if (args.length > 4) {
+                            skin = args[4];
+                        }
+
+                        DisguiseUtil.disguise(user.getBukkitEntity(), name, skin);
                     }
                 }
             }

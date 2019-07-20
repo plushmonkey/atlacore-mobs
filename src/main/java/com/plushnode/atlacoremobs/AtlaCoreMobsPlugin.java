@@ -31,6 +31,7 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
     private CommandMultiplexer commandMultiplexer;
     private SpawnManager spawnManager;
     private TrainingArenaModule trainingArena;
+    private VelocityTrackerService tracker;
 
     @Override
     public void onEnable() {
@@ -51,6 +52,8 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
         raidGame = new TownyRaidGame(this);
         spawnManager = new SpawnManager(this);
         trainingArena = new TrainingArenaModule(this);
+        tracker = new VelocityTrackerService(5, 3);
+        tracker.start();
 
         if (this.getServer().getPluginManager().getPlugin("ProjectKorra") != null) {
             ProjectKorraHook pkh = new ProjectKorraHook();
@@ -67,6 +70,10 @@ public class AtlaCoreMobsPlugin extends JavaPlugin {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public VelocityTrackerService getTrackingService() {
+        return tracker;
     }
 
     @Override
