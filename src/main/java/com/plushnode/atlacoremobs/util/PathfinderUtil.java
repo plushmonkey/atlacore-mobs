@@ -5,11 +5,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 // Utility class for controlling NMS pathfinder.
 public final class PathfinderUtil {
     private PathfinderUtil() {
@@ -26,7 +21,7 @@ public final class PathfinderUtil {
         targetSelector.clearSets();
     }
 
-    public static void setDefaultAI(Entity entity) {
+    public static void setDefaultAI(Entity entity, boolean meleeAttacks) {
         if (!ReflectionUtil.isInsentient(entity)) return;
 
         PathfinderGoalSelector goalSelector = new PathfinderGoalSelector(entity, PathfinderGoalSelector.SelectorType.Goal);
@@ -34,7 +29,9 @@ public final class PathfinderUtil {
         goalSelector.clearSets();
 
         goalSelector.setGoal(0, new PathfinderGoalFloat(entity));
-        goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, false));
+        if (meleeAttacks) {
+            goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, false));
+        }
         goalSelector.setGoal(5, new PathfinderGoalMoveTowardsRestriction(entity, 1.0));
         goalSelector.setGoal(7, new PathfinderGoalRandomStroll(entity, 1.0));
         goalSelector.setGoal(8, new PathfinderGoalLookAtPlayer(entity, ReflectionUtil.EntityHuman, 1.0f));

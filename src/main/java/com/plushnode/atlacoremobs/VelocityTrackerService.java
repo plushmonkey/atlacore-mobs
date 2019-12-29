@@ -64,7 +64,7 @@ public class VelocityTrackerService {
             TrackingInfo info = entry.getValue();
 
             // Reset velocity if the player changes worlds.
-            if (!player.getWorld().getName().equals(info.lastLocation.getWorld().getName())) {
+            if (player.getWorld() != info.lastLocation.getWorld()) {
                 info.velocity.clear();
                 info.lastLocation = player.getLocation();
             } else {

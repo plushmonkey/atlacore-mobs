@@ -63,7 +63,7 @@ public class TrainingArenaListener implements Listener {
 
         if (killer.getBukkitEntity() instanceof Villager) {
             Villager villager = (Villager)killer.getBukkitEntity();
-            name = villager.getCareer().toString();
+            name = villager.getProfession().toString();
 
             name = name.replace("_", "");
 

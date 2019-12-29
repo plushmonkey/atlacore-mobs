@@ -41,7 +41,7 @@ public class ScriptedUser extends BukkitBendingUser {
         targetPolicy = new NearestPlayerTargetPolicy(this);
 
         PathfinderUtil.disableAI(entity);
-        PathfinderUtil.setDefaultAI(entity);
+        PathfinderUtil.setDefaultAI(entity, true);
 
         this.aimPolicy = new GaussianAimPolicy(0.0, 0.4, 40.0, true);
     }
