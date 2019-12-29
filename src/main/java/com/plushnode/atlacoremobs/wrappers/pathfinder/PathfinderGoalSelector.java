@@ -7,6 +7,7 @@ import org.bukkit.entity.Entity;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Ref;
 
 public class PathfinderGoalSelector {
     private static final Class<?> InternalClass;
@@ -20,11 +21,16 @@ public class PathfinderGoalSelector {
 
         if (InternalClass != null) {
             try {
-                bField = InternalClass.getDeclaredField("b");
-                bField.setAccessible(true);
+                if (ReflectionUtil.getServerVersion() >= 14) {
+                    bField = InternalClass.getDeclaredField("d");
+                    cField = InternalClass.getDeclaredField("d");
+                } else {
+                    bField = InternalClass.getDeclaredField("b");
+                    cField = InternalClass.getDeclaredField("c");
+                }
 
-                cField = InternalClass.getDeclaredField("b");
                 cField.setAccessible(true);
+                bField.setAccessible(true);
 
                 goalSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("goalSelector");
                 targetSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("targetSelector");

@@ -1,5 +1,6 @@
 package com.plushnode.atlacoremobs.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 
 import java.lang.reflect.InvocationTargetException;
@@ -71,5 +72,17 @@ public final class ReflectionUtil {
         }
 
         return true;
+    }
+
+    public static int getServerVersion() {
+        int version = 13;
+
+        try {
+            version = Integer.parseInt(Bukkit.getServer().getClass().getPackage().getName().substring(23).split("_")[1]);
+        } catch (Exception e) {
+
+        }
+
+        return version;
     }
 }

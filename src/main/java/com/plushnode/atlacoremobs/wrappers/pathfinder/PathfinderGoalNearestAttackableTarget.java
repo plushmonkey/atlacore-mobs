@@ -16,7 +16,12 @@ public class PathfinderGoalNearestAttackableTarget implements PathfinderGoal {
         InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalNearestAttackableTarget");
 
         try {
-            constructor = InternalClass.getConstructor(ReflectionUtil.EntityCreature, Class.class, int.class, boolean.class, boolean.class, Predicate.class);
+            Class<?> entityClazz = ReflectionUtil.EntityCreature;
+
+            if (ReflectionUtil.getServerVersion() >= 14) {
+                entityClazz = ReflectionUtil.EntityInsentient;
+            }
+            constructor = InternalClass.getConstructor(entityClazz, Class.class, int.class, boolean.class, boolean.class, Predicate.class);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
