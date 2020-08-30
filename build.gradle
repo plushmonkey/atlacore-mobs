@@ -54,8 +54,8 @@ dependencies {
 	compile 'com.sk89q.worldguard:worldguard-core:7.0.0-SNAPSHOT'
 	compile 'LibsDisguises:LibsDisguises:9.+'
 	compile 'com.comphenix.protocol:ProtocolLib:4.+'
-	compile 'com.projectkorra:projectkorra:1.8.4.34'
-	compile 'org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT'
+	compile 'com.projectkorra:projectkorra:1.8.4.44'
+	compile 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
 }
 
 buildDir = 'bin'

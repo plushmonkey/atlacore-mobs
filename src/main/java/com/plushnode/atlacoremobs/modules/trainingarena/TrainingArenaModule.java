@@ -47,6 +47,8 @@ public class TrainingArenaModule {
     private long spawnDelay;
     private boolean hasPK;
     private double spawnRadius;
+    private double ySpawnMin;
+    private double ySpawnMax;
     private KillTracker killTracker;
     private boolean predictiveAiming;
 
@@ -72,6 +74,8 @@ public class TrainingArenaModule {
         this.updateDelay = plugin.getConfigRoot().getNode("training-arena", "update-delay").getLong(1000);
         this.spawnDelay = plugin.getConfigRoot().getNode("training-arena", "spawn-delay").getLong(5000);
         this.spawnRadius = plugin.getConfigRoot().getNode("training-arena", "spawn-radius").getDouble(20.0);
+        this.ySpawnMin = plugin.getConfigRoot().getNode("training-arena", "spawn-y-min").getDouble(50.0);
+        this.ySpawnMax = plugin.getConfigRoot().getNode("training-arena", "spawn-y-max").getDouble(90.0);
         this.predictiveAiming = plugin.getConfigRoot().getNode("training-arena", "predictive-aiming").getBoolean(true);
 
         this.hasPK = Bukkit.getPluginManager().getPlugin("ProjectKorra") != null;
@@ -309,6 +313,14 @@ public class TrainingArenaModule {
         if (rmax.getZ() < region.getMinimumPoint().getZ()) rmax.setZ(region.getMinimumPoint().getZ());
         if (rmax.getX() > region.getMaximumPoint().getX()) rmax.setX(region.getMaximumPoint().getX());
         if (rmax.getZ() > region.getMaximumPoint().getZ()) rmax.setZ(region.getMaximumPoint().getZ());
+
+        // Clamp spawnable region to y spawn range.
+        // This is to prevent spawns in player spawn areas that are placed within the region.
+        if (rmin.getY() < this.ySpawnMin) rmin.setY(ySpawnMin);
+        if (rmin.getY() > this.ySpawnMax) rmin.setY(ySpawnMax);
+
+        if (rmax.getY() < this.ySpawnMin) rmax.setY(ySpawnMin);
+        if (rmax.getY() > this.ySpawnMax) rmax.setY(ySpawnMax);
 
         BlockVector min = new BlockVector(rmin.getX(), rmin.getY(), rmin.getZ());
         BlockVector max = new BlockVector(rmax.getX(), rmax.getY(), rmax.getZ());

@@ -30,7 +30,7 @@ public final class PathfinderUtil {
 
         goalSelector.setGoal(0, new PathfinderGoalFloat(entity));
         if (meleeAttacks) {
-            goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, false));
+            //goalSelector.setGoal(2, new PathfinderGoalMeleeAttack(entity, 1.0, false));
         }
         goalSelector.setGoal(5, new PathfinderGoalMoveTowardsRestriction(entity, 1.0));
         goalSelector.setGoal(7, new PathfinderGoalRandomStroll(entity, 1.0));
@@ -44,7 +44,7 @@ public final class PathfinderUtil {
 
         // Non-monsters don't have ATTACK_DAMAGE initialized, which is required for the PathfinderGoalMeleeAttack.
         if (((LivingEntity)entity).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) == null) {
-            AttributeUtil.initializeAttackDamage(entity);
+            //AttributeUtil.initializeAttackDamage(entity);
         }
 
         // Sets an entity's navigation to the default one.
