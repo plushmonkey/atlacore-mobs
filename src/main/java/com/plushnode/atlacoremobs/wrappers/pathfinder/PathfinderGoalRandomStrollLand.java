@@ -6,28 +6,27 @@ import org.bukkit.entity.Entity;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class PathfinderGoalLookAtPlayer implements PathfinderGoal {
+public class PathfinderGoalRandomStrollLand implements PathfinderGoal {
     private static Class<?> InternalClass;
     private static Constructor<?> constructor;
     private Object handle = null;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtPlayer");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStrollLand");
 
         try {
-            constructor = InternalClass.getConstructor(ReflectionUtil.EntityInsentient, Class.class, float.class);
+            constructor = InternalClass.getConstructor(ReflectionUtil.EntityCreature, double.class);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
-    public PathfinderGoalLookAtPlayer(Entity entity, Class<?> clazz, float lookDistance) {
-        if (!ReflectionUtil.isInsentient(entity)) return;
+    public PathfinderGoalRandomStrollLand(Entity entity, double speedModifier) {
+        if (!ReflectionUtil.isCreature(entity)) return;
 
         try {
             Object entityHandle = ReflectionUtil.getEntityHandle.invoke(entity);
-
-            this.handle = constructor.newInstance(entityHandle, clazz, lookDistance);
+            this.handle = constructor.newInstance(entityHandle, speedModifier);
         } catch (IllegalAccessException|InvocationTargetException|InstantiationException e) {
             e.printStackTrace();
         }

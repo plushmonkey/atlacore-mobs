@@ -2,8 +2,11 @@ package com.plushnode.atlacoremobs.generator;
 
 import com.plushnode.atlacore.game.Game;
 import com.plushnode.atlacore.game.ability.AbilityDescription;
+import com.plushnode.atlacore.game.ability.ActivationMethod;
 import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacoremobs.ScriptedUser;
+import com.plushnode.atlacoremobs.behavior.BehaviorNode;
+import com.plushnode.atlacoremobs.behavior.game.ActivateNode;
 import com.plushnode.atlacoremobs.decision.RandomWeightedAbilityDecision;
 import org.bukkit.entity.LivingEntity;
 
@@ -24,6 +27,8 @@ public class ScriptedFireblasterGenerator implements ScriptedUserGenerator {
 
         user.setSlotAbility(1, Game.getAbilityRegistry().getAbilityByName("FireBlast"));
 
+        BehaviorNode tree = new ActivateNode(ActivationMethod.Punch);
+        //user.setBehaviorTree(tree);
         user.setDecisionTree(new RandomWeightedAbilityDecision(user, 1500, weights));
 
         return user;

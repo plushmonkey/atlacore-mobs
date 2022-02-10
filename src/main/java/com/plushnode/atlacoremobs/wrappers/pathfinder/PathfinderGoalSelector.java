@@ -8,34 +8,28 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Ref;
+import java.util.Set;
 
 public class PathfinderGoalSelector {
     private static final Class<?> InternalClass;
-    private static Method setGoalMethod;
-    private static Field bField, cField, goalSelectorField, targetSelectorField;
+    private static Method addGoalMethod;
+    private static Field availableGoals, goalSelectorField, targetSelectorField;
     private Object internalObject;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalSelector");
-        Class<?> InternalGoal = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoal");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalSelector");
+        Class<?> InternalGoal = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoal");
 
         if (InternalClass != null) {
             try {
-                if (ReflectionUtil.getServerVersion() >= 14) {
-                    bField = InternalClass.getDeclaredField("d");
-                    cField = InternalClass.getDeclaredField("d");
-                } else {
-                    bField = InternalClass.getDeclaredField("b");
-                    cField = InternalClass.getDeclaredField("c");
-                }
+                availableGoals = InternalClass.getDeclaredField("d");
 
-                cField.setAccessible(true);
-                bField.setAccessible(true);
+                availableGoals.setAccessible(true);
 
-                goalSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("goalSelector");
-                targetSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("targetSelector");
+                goalSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("bR");
+                targetSelectorField = ReflectionUtil.EntityInsentient.getDeclaredField("bS");
 
-                setGoalMethod = InternalClass.getDeclaredMethod("a", int.class, InternalGoal);
+                addGoalMethod = InternalClass.getDeclaredMethod("a", int.class, InternalGoal);
             } catch (NoSuchFieldException|NoSuchMethodException e) {
                 e.printStackTrace();
             }
@@ -56,22 +50,29 @@ public class PathfinderGoalSelector {
         }
     }
 
-    public void setGoal(int i, PathfinderGoal goal) {
+    public void addGoal(int priority, PathfinderGoal goal) {
         try {
             Object handle = goal.getHandle();
             if (handle != null) {
-                setGoalMethod.invoke(internalObject, i, handle);
+                addGoalMethod.invoke(internalObject, priority, handle);
             }
         } catch (IllegalAccessException|InvocationTargetException e) {
             e.printStackTrace();
         }
     }
 
-    // Clears the b and c sets.
-    public void clearSets() {
+    public Set getGoals() {
         try {
-            bField.set(internalObject, Sets.newLinkedHashSet());
-            cField.set(internalObject, Sets.newLinkedHashSet());
+            return (Set)availableGoals.get(internalObject);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void clearGoals() {
+        try {
+            availableGoals.set(internalObject, Sets.newLinkedHashSet());
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }

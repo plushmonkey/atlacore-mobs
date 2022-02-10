@@ -2,12 +2,15 @@ package com.plushnode.atlacoremobs.generator;
 
 import com.plushnode.atlacore.game.Game;
 import com.plushnode.atlacore.game.ability.AbilityDescription;
+import com.plushnode.atlacore.game.ability.ActivationMethod;
 import com.plushnode.atlacore.game.ability.air.AirScooter;
 import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacore.internal.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import com.plushnode.atlacore.platform.Location;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.actions.PunchActivateAction;
+import com.plushnode.atlacoremobs.behavior.BehaviorNode;
+import com.plushnode.atlacoremobs.behavior.game.ActivateNode;
 import com.plushnode.atlacoremobs.decision.BooleanDecision;
 import com.plushnode.atlacoremobs.decision.DecisionAction;
 import com.plushnode.atlacoremobs.decision.DecisionTreeNode;
@@ -63,6 +66,8 @@ public class WeakScriptedUserGenerator implements ScriptedUserGenerator {
             return user.isOnCooldown(Game.getAbilityRegistry().getAbilityByName("FireBlast"));
         });
 
+        BehaviorNode tree = new ActivateNode(ActivationMethod.Punch);
+        //user.setBehaviorTree(tree);
         user.setDecisionTree(decisionTree);
 
         return user;

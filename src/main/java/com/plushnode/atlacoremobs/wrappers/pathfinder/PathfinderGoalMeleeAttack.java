@@ -12,7 +12,7 @@ public class PathfinderGoalMeleeAttack implements PathfinderGoal {
     private Object handle = null;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalMeleeAttack");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalMeleeAttack");
 
         try {
             constructor = InternalClass.getConstructor(ReflectionUtil.EntityCreature, double.class, boolean.class);

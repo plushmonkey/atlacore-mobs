@@ -13,7 +13,7 @@ public class PathfinderGoalRandomLookaround implements PathfinderGoal {
     private Object handle = null;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalRandomLookaround");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalRandomLookaround");
 
         try {
             constructor = InternalClass.getConstructor(ReflectionUtil.EntityInsentient);

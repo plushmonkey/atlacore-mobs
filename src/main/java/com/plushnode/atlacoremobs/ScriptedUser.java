@@ -6,6 +6,9 @@ import com.plushnode.atlacore.game.ability.air.AirScooter;
 import com.plushnode.atlacore.internal.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import com.plushnode.atlacore.platform.*;
 import com.plushnode.atlacore.util.VectorUtil;
+import com.plushnode.atlacoremobs.behavior.BehaviorNode;
+import com.plushnode.atlacoremobs.behavior.Blackboard;
+import com.plushnode.atlacoremobs.behavior.ExecuteContext;
 import com.plushnode.atlacoremobs.decision.*;
 import com.plushnode.atlacoremobs.util.PathfinderUtil;
 import com.plushnode.atlacoremobs.util.VectorSmoother;
@@ -23,8 +26,13 @@ public class ScriptedUser extends BukkitBendingUser {
 
     private User target;
     private TargetPolicy targetPolicy;
+
     private DecisionTreeNode decisionTree;
     private DecisionAction currentAction;
+
+    private Blackboard blackboard;
+    private BehaviorNode behaviorTree;
+
     private boolean sneaking = false;
     private int selectedIndex = 1;
     private VectorSmoother directionSmoother = new VectorSmoother(20);
@@ -38,6 +46,7 @@ public class ScriptedUser extends BukkitBendingUser {
         sneakModifier = new AttributeModifier("generic.movementSpeed", -0.4, AttributeModifier.Operation.ADD_SCALAR);
 
         decisionTree = new RandomAbilityDecision(this, 1500);
+        blackboard = new Blackboard();
         targetPolicy = new NearestPlayerTargetPolicy(this);
 
         PathfinderUtil.disableAI(entity);
@@ -52,10 +61,6 @@ public class ScriptedUser extends BukkitBendingUser {
 
     public void setAimPolicy(AimPolicy module) {
         this.aimPolicy = module;
-    }
-
-    public void setDecisionTree(DecisionTreeNode tree) {
-        this.decisionTree = tree;
     }
 
     public void setTargetPolicy(TargetPolicy targetPolicy) {
@@ -178,6 +183,10 @@ public class ScriptedUser extends BukkitBendingUser {
             }
         }
 
+        tickBehavior();
+    }
+
+    public void tickBehavior() {
         if (currentAction == null || currentAction.isDone()) {
             currentAction = decisionTree.decide();
             if (currentAction != null) {
@@ -189,6 +198,18 @@ public class ScriptedUser extends BukkitBendingUser {
             //System.out.println("Action: " + currentAction.getName());
             currentAction.act();
         }
+
+        if (this.behaviorTree != null) {
+            this.behaviorTree.execute(new ExecuteContext(this.blackboard, this));
+        }
+    }
+
+    public void setBehaviorTree(BehaviorNode tree) {
+        this.behaviorTree = tree;
+    }
+
+    public void setDecisionTree(DecisionTreeNode tree) {
+        this.decisionTree = tree;
     }
 
     private boolean isSmoothed() {

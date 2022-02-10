@@ -2,11 +2,14 @@ package com.plushnode.atlacoremobs.generator;
 
 import com.plushnode.atlacore.game.Game;
 import com.plushnode.atlacore.game.ability.AbilityDescription;
+import com.plushnode.atlacore.game.ability.ActivationMethod;
 import com.plushnode.atlacore.game.element.Elements;
 import com.plushnode.atlacore.util.WorldUtil;
 import com.plushnode.atlacoremobs.ScriptedUser;
 import com.plushnode.atlacoremobs.actions.NullAction;
 import com.plushnode.atlacoremobs.actions.earth.EarthBlastAction;
+import com.plushnode.atlacoremobs.behavior.BehaviorNode;
+import com.plushnode.atlacoremobs.behavior.game.ActivateNode;
 import com.plushnode.atlacoremobs.decision.BooleanDecision;
 import com.plushnode.atlacoremobs.decision.DecisionTreeNode;
 import org.bukkit.entity.LivingEntity;
@@ -37,6 +40,8 @@ public class ScriptedEarthbenderGenerator implements ScriptedUserGenerator {
         });
 
 
+        BehaviorNode tree = new ActivateNode(ActivationMethod.Punch);
+        //user.setBehaviorTree(tree);
         user.setDecisionTree(groundCheck);
 
         return user;

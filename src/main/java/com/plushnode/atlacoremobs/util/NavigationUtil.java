@@ -15,12 +15,12 @@ public final class NavigationUtil {
 
     static {
         try {
-            navigationClazz = ReflectionUtil.getInternalClass("net.minecraft.server.%s.Navigation");
+            navigationClazz = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.navigation.Navigation");
 
-            worldClazz = ReflectionUtil.getInternalClass("net.minecraft.server.%s.World");
-            craftWorldClazz = ReflectionUtil.getInternalClass("org.bukkit.craftbukkit.%s.CraftWorld");
+            worldClazz = ReflectionUtil.getInternalClass("net.minecraft.world.level.World");
+            craftWorldClazz = ReflectionUtil.getBukkitClass("org.bukkit.craftbukkit.%s.CraftWorld");
 
-            navigationField = ReflectionUtil.EntityInsentient.getDeclaredField("navigation");
+            navigationField = ReflectionUtil.EntityInsentient.getDeclaredField("bQ");
             navigationField.setAccessible(true);
 
             getWorldHandleMethod = craftWorldClazz.getDeclaredMethod("getHandle");

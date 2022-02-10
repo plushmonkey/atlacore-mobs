@@ -12,7 +12,7 @@ public class PathfinderGoalRandomStroll implements PathfinderGoal {
     private Object handle = null;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalRandomStroll");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStroll");
 
         try {
             constructor = InternalClass.getConstructor(ReflectionUtil.EntityCreature, double.class);

@@ -17,10 +17,10 @@ public final class ReflectionUtil {
     }
 
     static {
-        CraftEntity = getInternalClass("org.bukkit.craftbukkit.%s.entity.CraftEntity");
-        EntityCreature = getInternalClass("net.minecraft.server.%s.EntityCreature");
-        EntityInsentient = getInternalClass("net.minecraft.server.%s.EntityInsentient");
-        EntityHuman = getInternalClass("net.minecraft.server.%s.EntityHuman");
+        CraftEntity = getBukkitClass("org.bukkit.craftbukkit.%s.entity.CraftEntity");
+        EntityCreature = getInternalClass("net.minecraft.world.entity.EntityCreature");
+        EntityInsentient = getInternalClass("net.minecraft.world.entity.EntityInsentient");
+        EntityHuman = getInternalClass("net.minecraft.world.entity.player.EntityHuman");
 
         if (CraftEntity != null) {
             try {
@@ -32,9 +32,17 @@ public final class ReflectionUtil {
     }
 
     public static Class<?> getInternalClass(String nmsClass) {
+        try {
+            return Class.forName(nmsClass);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    public static Class<?> getBukkitClass(String className) {
         String version = null;
 
-        Pattern pattern = Pattern.compile("net\\.minecraft\\.(?:server)?\\.(v(?:\\d+_)+R\\d)");
+        Pattern pattern = Pattern.compile("org\\.bukkit\\.(?:craftbukkit)?\\.(v(?:\\d+_)+R\\d)");
         for (Package p : Package.getPackages()) {
             String name = p.getName();
             Matcher m = pattern.matcher(name);
@@ -46,7 +54,7 @@ public final class ReflectionUtil {
         if (version == null) return null;
 
         try {
-            return Class.forName(String.format(nmsClass, version));
+            return Class.forName(String.format(className, version));
         } catch (ClassNotFoundException e) {
             return null;
         }

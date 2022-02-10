@@ -13,7 +13,7 @@ public class PathfinderGoalNearestAttackableTarget implements PathfinderGoal {
     private Object handle = null;
 
     static {
-        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.server.%s.PathfinderGoalNearestAttackableTarget");
+        InternalClass = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget");
 
         try {
             Class<?> entityClazz = ReflectionUtil.EntityCreature;
@@ -27,12 +27,12 @@ public class PathfinderGoalNearestAttackableTarget implements PathfinderGoal {
         }
     }
 
-    public PathfinderGoalNearestAttackableTarget(Entity entity, Class<?> targetClazz, int i, boolean f1, boolean f2, Predicate<?> predicate) {
+    public PathfinderGoalNearestAttackableTarget(Entity entity, Class<?> targetType, int intervalTicks, boolean mustSee, boolean mustReach, Predicate<?> predicate) {
         if (!ReflectionUtil.isCreature(entity)) return;
 
         try {
             Object entityHandle = ReflectionUtil.getEntityHandle.invoke(entity);
-            this.handle = constructor.newInstance(entityHandle, targetClazz, i, f1, f2, predicate);
+            this.handle = constructor.newInstance(entityHandle, targetType, intervalTicks, mustSee, mustReach, predicate);
         } catch (IllegalAccessException|InvocationTargetException|InstantiationException e) {
             e.printStackTrace();
         }

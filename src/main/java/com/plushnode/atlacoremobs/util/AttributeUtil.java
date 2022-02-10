@@ -1,16 +1,13 @@
 package com.plushnode.atlacoremobs.util;
 
-import com.google.common.collect.Maps;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Entity;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class AttributeUtil {
     private static Class EntityLiving, AttributeModifiable, AttributeBase, AttributeMapBase, GenericAttributes, AttributeProvider;
@@ -19,16 +16,16 @@ public final class AttributeUtil {
 
     static {
         try {
-            EntityLiving = ReflectionUtil.getInternalClass("net.minecraft.server.%s.EntityLiving");
-            AttributeMapBase = ReflectionUtil.getInternalClass("net.minecraft.server.%s.AttributeMapBase");
-            AttributeBase = ReflectionUtil.getInternalClass("net.minecraft.server.%s.AttributeBase");
-            AttributeModifiable = ReflectionUtil.getInternalClass("net.minecraft.server.%s.AttributeModifiable");
-            AttributeProvider = ReflectionUtil.getInternalClass("net.minecraft.server.%s.AttributeProvider");
-            GenericAttributes = ReflectionUtil.getInternalClass("net.minecraft.server.%s.GenericAttributes");
+            EntityLiving = ReflectionUtil.getInternalClass("net.minecraft.world.entity.EntityLiving");
+            AttributeMapBase = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.attributes.AttributeMapBase");
+            AttributeBase = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.attributes.AttributeBase");
+            AttributeModifiable = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.attributes.AttributeModifiable");
+            AttributeProvider = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.attributes.AttributeProvider");
+            GenericAttributes = ReflectionUtil.getInternalClass("net.minecraft.world.entity.ai.attributes.GenericAttributes");
 
-            getAttributeMap = EntityLiving.getDeclaredMethod("getAttributeMap");
+            getAttributeMap = EntityLiving.getDeclaredMethod("ep");
             createModifiable = AttributeMapBase.getDeclaredMethod("a", AttributeBase);
-            Field attackDamageField = GenericAttributes.getDeclaredField("ATTACK_DAMAGE");
+            Field attackDamageField = GenericAttributes.getDeclaredField("f");
 
             ATTACK_DAMAGE = attackDamageField.get(null);
         } catch (IllegalAccessException|NoSuchMethodException|NoSuchFieldException e) {
@@ -45,29 +42,19 @@ public final class AttributeUtil {
             Object entityHandle = ReflectionUtil.getEntityHandle.invoke(entity);
             Object attributeMap = getAttributeMap.invoke(entityHandle);
 
-            /*
-            Field providerField = AttributeMapBase.getDeclaredField("d");
-            providerField.setAccessible(true);
+            Field attributeField = AttributeMapBase.getDeclaredField("b");
+            attributeField.setAccessible(true);
 
-            Field mapField = AttributeProvider.getDeclaredField("a");
-            mapField.setAccessible(true);
+            Map<Object, Object> attributes = (Map)attributeField.get(attributeMap);
 
-            Object provider = providerField.get(attributeMap);
-            Object immutableMap = mapField.get(provider);
+            Constructor ModifiableConstructor = AttributeModifiable.getConstructor(AttributeBase, Consumer.class);
+            Consumer consumer = (obj) -> {};
 
-            HashMap newMap = new HashMap((Map)immutableMap);
+            // Construct a new AttributeModifiable to store in the attributes map.
+            Object modifiable = ModifiableConstructor.newInstance(ATTACK_DAMAGE, consumer);
 
-            mapField.set(provider, newMap);
-
-            Object r = createModifiable.invoke(attributeMap, ATTACK_DAMAGE);
-
-            if (r == null) {
-                System.out.println("Failed to add attack damage modifier.");
-            } else {
-                System.out.println("Got attack damage modifier back");
-            }
-             */
-        } catch (IllegalAccessException|InvocationTargetException e) {
+            attributes.put(ATTACK_DAMAGE, modifiable);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException | NoSuchMethodException | InstantiationException e) {
             e.printStackTrace();
         }
     }
